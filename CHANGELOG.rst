@@ -14,6 +14,11 @@ Changelog
 * Added to command ```processincomingmessage``` argument to pass mailbox name
 * Improved tests, especially different Django & Python version
 
+4.7.2
+---
+
+* New setting to keep emails in inbox while preventing duplicates from getting imported.
+
 4.6.1
 -----
 
