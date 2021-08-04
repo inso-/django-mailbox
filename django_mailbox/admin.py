@@ -109,7 +109,6 @@ class MessageAdmin(admin.ModelAdmin):
         'message_id',
         'from_header',
         'to_header',
-        'text'
     )
 
 
