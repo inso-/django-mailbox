@@ -81,6 +81,13 @@ class Mailbox(models.Model):
         default=None,
     )
 
+    smtp_uri = models.CharField(
+        _('server_smtp'),
+        max_length=255,
+        blank=True,
+        null=True,
+        default=None,)
+
     from_email = models.CharField(
         _('From email'),
         max_length=255,
@@ -139,6 +146,17 @@ class Mailbox(models.Model):
     def port(self):
         """Returns the port to use for fetching messages."""
         return self._protocol_info.port
+
+    @property
+    def smtp_address(self):
+        print(self.smtp_uri)
+        """Returns the smtp qddress to use for sending messages."""
+        return self.smtp_uri.split(":")[0]
+
+    @property
+    def smtp_port(self):
+        """Returns the smtp port to use for sending messages."""
+        return int(self.smtp_uri.split(":")[1])
 
     @property
     def username(self):
