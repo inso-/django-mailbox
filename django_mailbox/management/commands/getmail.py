@@ -25,11 +25,14 @@ class Command(BaseCommand):
                 'Gathering messages for %s',
                 mailbox.name
             )
+            try:
 
-            messages = mailbox.get_new_mail(condition=message_already_exists)
-            for message in messages:
-                logger.info(
-                    'Received %s (from %s)',
-                    message.subject,
-                    message.from_address
-                )
+                messages = mailbox.get_new_mail(condition=message_already_exists)
+                for message in messages:
+                    logger.info(
+                        'Received %s (from %s)',
+                        message.subject,
+                        message.from_address
+                    )
+            except Exception as e:
+                print(e)

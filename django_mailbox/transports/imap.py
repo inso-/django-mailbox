@@ -122,7 +122,7 @@ class ImapTransport(EmailTransport):
                     # processing it here.
                     continue
 
-                if condition and not condition(message):
+                if condition and condition(message):
                     continue
 
                 yield message

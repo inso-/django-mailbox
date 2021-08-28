@@ -149,8 +149,9 @@ class Mailbox(models.Model):
 
     @property
     def smtp_address(self):
-        print(self.smtp_uri)
         """Returns the smtp qddress to use for sending messages."""
+        if self.smtp_uri is None:
+            return None
         return self.smtp_uri.split(":")[0]
 
     @property
