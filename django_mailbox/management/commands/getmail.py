@@ -1,4 +1,5 @@
 import logging
+import traceback
 
 from django.core.management.base import BaseCommand
 
@@ -35,4 +36,5 @@ class Command(BaseCommand):
                         message.from_address
                     )
             except Exception as e:
+                traceback.print_exc()
                 print(e)

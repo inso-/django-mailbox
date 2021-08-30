@@ -16,6 +16,7 @@ import logging
 import mimetypes
 import os.path
 import sys
+import hashlib
 import uuid
 from tempfile import NamedTemporaryFile
 
@@ -259,8 +260,19 @@ class Mailbox(models.Model):
         msg = self._process_message(message)
         if msg is None:
             return None
+
         msg.outgoing = False
         msg.save()
+
+        # TODO: improve request by filtering recent and by sender
+
+        all_trusted = Message.objects.all().filter(outgoing=True)
+
+        trusted = list(filter(lambda message: message.get_hash_value() == msg.get_hash_value(), all_trusted))
+
+        if len(trusted) > 0:
+            msg.trusted = True
+            msg.save()
 
         message_received.send(sender=self, message=msg)
 
@@ -272,7 +284,9 @@ class Mailbox(models.Model):
         if msg is None:
             return None
         msg.outgoing = True
+        msg.trusted = True
         msg.save()
+        print(msg.get_hash_value())
         return msg
 
     def _get_dehydrated_message(self, msg, record):
@@ -412,6 +426,7 @@ class Mailbox(models.Model):
             except IndexError:
                 pass
         msg.save()
+
         return msg
 
     def _process_save_original_message(self, message, msg):
@@ -530,6 +545,12 @@ class Message(models.Model):
         help_text=_('True if the e-mail body is Base64 encoded'),
     )
 
+    trusted = models.BooleanField(
+        _('Trusted'),
+        default=False,
+        help_text=_('True if the e-mail come from our trusted platform'),
+    )
+
     processed = models.DateTimeField(
         _('Processed'),
         auto_now_add=True
@@ -552,6 +573,40 @@ class Message(models.Model):
     unread_messages = UnreadMessageManager()
     incoming_messages = IncomingMessageManager()
     outgoing_messages = OutgoingMessageManager()
+
+
+    @property
+    def hash(self):
+        return self.get_hash_value()
+
+    def get_hash_value(self):
+        to_hash = self.subject + self.text + str(self.from_address) + str(self.to_addresses) + str(self.date) + ";"
+        return hashlib.md5(to_hash.encode("utf-8")).hexdigest()
+
+    @property
+    def envelope_header(self):
+        email = self.get_email_object()
+        return '\n'.join(
+            [('{}: {}'.format(h, v)) for h, v in email.items()]
+        )
+
+    @property
+    def dict_envelope_header(self):
+        dict = {}
+        headers = self.envelope_header.split('\n')
+
+        for head in headers:
+            try:
+                key = head.split(":")[0]
+                value = head.split(":")[1]
+                dict[key] = value
+            except:
+                pass
+        return dict
+
+    @property
+    def date(self):
+        return self.dict_envelope_header["Date"]
 
     @property
     def address(self):
