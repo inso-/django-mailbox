@@ -189,6 +189,11 @@ class Mailbox(models.Model):
         return '+ssl' in self._protocol_info.scheme.lower()
 
     @property
+    def use_gmail(self):
+        """Returns whether or not this mailbox's connection uses GMAIL."""
+        return 'gmail+ssl' in self._protocol_info.scheme.lower()
+
+    @property
     def use_tls(self):
         """Returns whether or not this mailbox's connection uses STARTTLS."""
         return '+tls' in self._protocol_info.scheme.lower()
