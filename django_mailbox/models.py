@@ -6,7 +6,7 @@ Models declaration for application ``django_mailbox``.
 import gzip
 from email.encoders import encode_base64
 from email.message import Message as EmailMessage
-from email.utils import formatdate, parseaddr
+from email.utils import formatdate, parsedate_to_datetime, parseaddr
 from urllib.parse import parse_qs, unquote, urlparse
 from quopri import encode as encode_quopri
 from io import BytesIO
@@ -19,6 +19,7 @@ import sys
 import hashlib
 import uuid
 from tempfile import NamedTemporaryFile
+from dateutil import tz
 
 import django
 from django.conf import settings as django_settings
@@ -603,7 +604,7 @@ class Message(models.Model):
         for head in headers:
             try:
                 key = head.split(":")[0]
-                value = head.split(":")[1]
+                value = ':'.join(head.split(":")[1:])
                 dict[key] = value
             except:
                 pass
@@ -611,7 +612,10 @@ class Message(models.Model):
 
     @property
     def date(self):
-        return self.dict_envelope_header["Date"]
+        date_str =  self.dict_envelope_header["Date"]
+        parsed_date = parsedate_to_datetime(date_str)
+        local_time = parsed_date.astimezone(tz.gettz('UTC'))
+        return str(local_time)
 
     @property
     def address(self):
